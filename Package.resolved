@@ -1,5 +1,5 @@
 {
-  "originHash" : "f7bd741220bae9ec7803ac35e9e0113f54a892e91c90e58b7a8b2b6c11055526",
+  "originHash" : "c7ace2b62649ad182814142fd555adda640885d3c0b8d93c30bc7641b5961b50",
   "pins" : [
     {
       "identity" : "e5data",
@@ -7,6 +7,24 @@
       "location" : "https://git.elbe5cloud.de/miro/E5Data",
       "state" : {
         "revision" : "ea473683898718ee2ba8e1a4b250e6a1739b31e3",
+        "version" : "1.0.0"
+      }
+    },
+    {
+      "identity" : "e5iosui",
+      "kind" : "remoteSourceControl",
+      "location" : "https://git.elbe5cloud.de/miro/E5IOSUI",
+      "state" : {
+        "revision" : "8d05226bb1fddcedc914190f587a5840997eb969",
+        "version" : "1.0.0"
+      }
+    },
+    {
+      "identity" : "e5photolib",
+      "kind" : "remoteSourceControl",
+      "location" : "https://git.elbe5cloud.de/miro/E5PhotoLib",
+      "state" : {
+        "revision" : "d568867b6be2bdc5460b809aa62468203b3bc5ec",
         "version" : "1.0.0"
       }
     }

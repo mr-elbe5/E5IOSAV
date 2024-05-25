@@ -12,6 +12,7 @@
 
 import Foundation
 import UIKit
+import E5IOSUI
 
 open class CameraInfoViewController: PopupScrollViewController {
     
