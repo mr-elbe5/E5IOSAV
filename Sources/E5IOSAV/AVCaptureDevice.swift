@@ -10,6 +10,21 @@ import E5Data
 
 extension AVCaptureDevice {
     
+    static var defaultCameraDevice : AVCaptureDevice?{
+        if let dualCameraDevice = AVCaptureDevice.default(.builtInDualCamera, for: .video, position: .back) {
+            return dualCameraDevice
+        } else if let backCameraDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) {
+            return backCameraDevice
+        } else if let frontCameraDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front) {
+            return frontCameraDevice
+        }
+        return nil
+    }
+    
+    static var isCameraAvailable : Bool{
+        defaultCameraDevice != nil
+    }
+        
     public static func askCameraAuthorization(callback: @escaping (Result<Void, Error>) -> Void){
         switch AVCaptureDevice.authorizationStatus(for: .video){
         case .authorized:
