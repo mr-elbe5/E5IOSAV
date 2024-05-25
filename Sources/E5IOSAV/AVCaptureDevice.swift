@@ -10,7 +10,7 @@ import E5Data
 
 extension AVCaptureDevice {
     
-    static var defaultCameraDevice : AVCaptureDevice?{
+    public static var defaultCameraDevice : AVCaptureDevice?{
         if let dualCameraDevice = AVCaptureDevice.default(.builtInDualCamera, for: .video, position: .back) {
             return dualCameraDevice
         } else if let backCameraDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) {
@@ -21,7 +21,7 @@ extension AVCaptureDevice {
         return nil
     }
     
-    static var isCameraAvailable : Bool{
+    public static var isCameraAvailable : Bool{
         defaultCameraDevice != nil
     }
         
