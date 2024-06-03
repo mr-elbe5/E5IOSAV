@@ -32,7 +32,7 @@ extension CameraViewController{
         self.setNeedsUpdateOfSupportedInterfaceOrientations()
         sessionQueue.async {
             if !movieFileOutput.isRecording {
-                Log.debug("start movie recording")
+                Log.info("start movie recording")
                 DispatchQueue.main.async {
                     //Log.debug("movie recording: change capture button to recording")
                     self.captureButton.buttonState = .recording
@@ -95,7 +95,7 @@ extension CameraViewController{
                 }
             }
             PhotoLibrary.saveVideo(outputFileURL: outputFileURL, location: location, resultHandler: { localIdentifier in
-                Log.debug("saved video with localIdentifier \(localIdentifier)")
+                //Log.debug("saved video with localIdentifier \(localIdentifier)")
                 cleanup()
             })
         } else {

@@ -107,7 +107,7 @@ extension PhotoCaptureProcessor: AVCapturePhotoCaptureDelegate {
             }
         }
         PhotoLibrary.savePhoto(photoData: self.photoData!, fileType: self.requestedPhotoSettings.processedFileType, location: self.location, resultHandler: { s in
-            Log.debug("saved photo with locaIdentifier \(s)")
+            //Log.debug("saved photo with locaIdentifier \(s)")
             self.completionHandler(self)
         })
     }

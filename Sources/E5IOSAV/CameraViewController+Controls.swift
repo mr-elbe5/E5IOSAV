@@ -305,7 +305,7 @@ extension CameraViewController{
         //Log.debug("isPhotoMode = \(cameraSettings.isPhotoMode)")
         enableControls(false)
         if isPhotoMode {
-            Log.debug("running photo mode")
+            Log.info("running photo mode")
             enableControls(false)
             selectedMovieMode10BitDeviceFormat = nil
             sessionQueue.async {
@@ -321,7 +321,7 @@ extension CameraViewController{
                 }
             }
         } else {
-            Log.debug("running video mode")
+            Log.info("running video mode")
             sessionQueue.async {
                 let movieFileOutput = AVCaptureMovieFileOutput()
                 if self.session.canAddOutput(movieFileOutput) {
@@ -338,7 +338,7 @@ extension CameraViewController{
                             do {
                                 try self.currentDevice.lockForConfiguration()
                                 self.currentDevice.activeFormat = self.selectedMovieMode10BitDeviceFormat!
-                                Log.debug("Setting 'x420' format \(String(describing: self.selectedMovieMode10BitDeviceFormat)) for video recording")
+                                //Log.debug("Setting 'x420' format \(String(describing: self.selectedMovieMode10BitDeviceFormat)) for video recording")
                                 self.currentDevice.unlockForConfiguration()
                             } catch {
                                 Log.error("Could not lock device for configuration: \(error)")
