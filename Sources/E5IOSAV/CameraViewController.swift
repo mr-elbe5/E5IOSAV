@@ -18,10 +18,8 @@ public protocol CameraDelegate{
 
 open class CameraViewController: UIViewController, AVCaptureFileOutputRecordingDelegate, AVCapturePhotoOutputReadinessCoordinatorDelegate {
     
-    static var isMainController = false
-    
-    static var discoverableDeviceTypes : [AVCaptureDevice.DeviceType] = [.builtInWideAngleCamera, .builtInUltraWideCamera,.builtInTelephotoCamera]
-    static var maxLensZoomFactor = 10.0
+    public static var discoverableDeviceTypes : [AVCaptureDevice.DeviceType] = [.builtInWideAngleCamera, .builtInUltraWideCamera,.builtInTelephotoCamera]
+    public static var maxLensZoomFactor = 10.0
     
     enum SessionSetupResult {
         case success
@@ -31,11 +29,11 @@ open class CameraViewController: UIViewController, AVCaptureFileOutputRecordingD
     
     let locationManager = CLLocationManager()
     
-    var bodyView = UIView()
+    public var bodyView = UIView()
     let previewView = PreviewView()
     let captureModeControl = UISegmentedControl()
     let hdrVideoModeButton = CameraIconButton()
-    let flashModeButton = CameraIconButton()
+    public let flashModeButton = CameraIconButton()
     let zoomLabel = UILabel(text: "1.0x")
     
     let cameraUnavailableLabel = UILabel(text: "cameraUnavailable".localize(table: "Camera"))
