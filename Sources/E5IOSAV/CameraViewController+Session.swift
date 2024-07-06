@@ -32,7 +32,6 @@ extension CameraViewController{
                         defaultVideoDevice = device
                     }
                 }
-                AVCaptureDevice.userPreferredCamera = defaultVideoDevice
                 userDefaults.set(true, forKey: "setInitialUserPreferredCamera")
             }
             guard let videoDevice = defaultVideoDevice else {
