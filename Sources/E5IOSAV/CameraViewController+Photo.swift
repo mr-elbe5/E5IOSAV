@@ -86,6 +86,84 @@ extension PhotoCaptureProcessor: AVCapturePhotoCaptureDelegate {
             return
         }
         self.photoData = photo.fileDataRepresentation()
+        if let location = location, let data = self.photoData{
+            if let dataWithCoordinates = setImageProperties(data: data, altitude: location.altitude, latitude: location.coordinate.latitude, longitude: location.coordinate.longitude, utType: .jpeg){
+                self.photoData = dataWithCoordinates
+                
+            }
+        }
+    }
+    
+    func setImageProperties(data: Data, dateTime: Date? = nil,
+                                    offsetTime: String? = nil,
+                                    altitude: Double? = nil,
+                                    latitude: Double? = nil,
+                                    longitude: Double? = nil,
+                                    utType: UTType = .jpeg) -> Data?{
+        if let src = CGImageSourceCreateWithData(data as CFData,  nil),
+           let destData = CFDataCreateMutable(.none, 0),
+           let dest: CGImageDestination = CGImageDestinationCreateWithData(destData, utType.identifier as CFString, 1, nil){
+            let properties = (CGImageSourceCopyPropertiesAtIndex(src, 0, nil)! as NSDictionary).mutableCopy() as! NSMutableDictionary
+            if dateTime != nil || offsetTime != nil{
+                var exifProperties: NSMutableDictionary
+                if let  currentExifProperties = properties.value(forKey: kCGImagePropertyExifDictionary as String) as? NSMutableDictionary{
+                    exifProperties = currentExifProperties
+                }
+                else{
+                    exifProperties = NSMutableDictionary()
+                    properties[kCGImagePropertyExifDictionary] = exifProperties
+                }
+                print(exifProperties)
+                var iptcProperties: NSMutableDictionary
+                if let  currentIptcProperties = properties.value(forKey: kCGImagePropertyIPTCDictionary as String) as? NSMutableDictionary{
+                    iptcProperties = currentIptcProperties
+                }
+                else{
+                    iptcProperties = NSMutableDictionary()
+                    properties[kCGImagePropertyIPTCDictionary] = iptcProperties
+                }
+                if let dateTime = dateTime{
+                    exifProperties[kCGImagePropertyExifDateTimeOriginal] = DateFormats.exifDateFormatter.string(for: dateTime)
+                    exifProperties[kCGImagePropertyExifDateTimeDigitized] = DateFormats.exifDateFormatter.string(for: dateTime)
+                    iptcProperties[kCGImagePropertyIPTCDateCreated] = DateFormats.iptcDateFormatter.string(for: dateTime)
+                    iptcProperties[kCGImagePropertyIPTCTimeCreated] = DateFormats.iptcTimeFormatter.string(for: dateTime)
+                    iptcProperties[kCGImagePropertyIPTCDigitalCreationDate] = DateFormats.iptcDateFormatter.string(for: dateTime)
+                    iptcProperties[kCGImagePropertyIPTCDigitalCreationTime] = DateFormats.iptcTimeFormatter.string(for: dateTime)
+                }
+                if let offsetTime = offsetTime{
+                    exifProperties[kCGImagePropertyExifOffsetTime] = offsetTime
+                }
+            }
+            if altitude != nil || latitude != nil || longitude != nil{
+                var gpsProperties: NSMutableDictionary
+                if let  currentGpsProperties = properties.value(forKey: kCGImagePropertyGPSDictionary as String) as? NSMutableDictionary{
+                    gpsProperties = currentGpsProperties
+                }
+                else{
+                    gpsProperties = NSMutableDictionary()
+                    properties[kCGImagePropertyGPSDictionary] = gpsProperties
+                }
+                if let altitude = altitude{
+                    gpsProperties[kCGImagePropertyGPSAltitude] = altitude
+                }
+                if let latitude = latitude{
+                    gpsProperties[kCGImagePropertyGPSLatitude] = latitude
+                    gpsProperties[kCGImagePropertyGPSLatitudeRef] = latitude < 0 ? "S" : "N"
+                }
+                if var longitude = longitude{
+                    if longitude > 180{
+                        longitude -= 360
+                    }
+                    gpsProperties[kCGImagePropertyGPSLongitude] = abs(longitude)
+                    gpsProperties[kCGImagePropertyGPSLongitudeRef] = longitude < 0 ? "W" : "E"
+                }
+            }
+            print(properties)
+            CGImageDestinationAddImageFromSource(dest, src, 0, properties)
+            CGImageDestinationFinalize(dest)
+            return destData as Data
+        }
+        return nil
     }
     
     func photoOutput(_ output: AVCapturePhotoOutput, didFinishCaptureFor resolvedSettings: AVCaptureResolvedPhotoSettings, error: Error?) {
@@ -104,9 +182,6 @@ extension PhotoCaptureProcessor: AVCapturePhotoCaptureDelegate {
                 delegate.photoCaptured(data: self.photoData!, location: self.location)
             }
         }
-        let imageMetaData = ImageMetaData()
-        imageMetaData.readData(data: self.photoData!)
-        print(imageMetaData.dictionary)
         PhotoLibrary.savePhoto(photoData: self.photoData!, fileType: self.requestedPhotoSettings.processedFileType, location: self.location, resultHandler: { s in
             self.completionHandler(self)
         })
