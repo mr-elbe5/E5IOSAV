@@ -21,7 +21,7 @@ open class CameraViewController: UIViewController, AVCaptureFileOutputRecordingD
     public static var discoverableDeviceTypes : [AVCaptureDevice.DeviceType] = [.builtInWideAngleCamera, .builtInUltraWideCamera,.builtInTelephotoCamera]
     public static var maxLensZoomFactor = 10.0
     
-    enum SessionSetupResult {
+    public enum SessionSetupResult {
         case success
         case notAuthorized
         case configurationFailed
@@ -31,27 +31,27 @@ open class CameraViewController: UIViewController, AVCaptureFileOutputRecordingD
     
     public var bodyView = UIView()
     let previewView = PreviewView()
-    let captureModeControl = UISegmentedControl()
-    let hdrVideoModeButton = CameraIconButton()
+    public let captureModeControl = UISegmentedControl()
+    public let hdrVideoModeButton = CameraIconButton()
     public let flashModeButton = CameraIconButton()
-    let zoomLabel = UILabel(text: "1.0x")
+    public let zoomLabel = UILabel(text: "1.0x")
     
-    let cameraUnavailableLabel = UILabel(text: "cameraUnavailable".localize(table: "Camera"))
+    public let cameraUnavailableLabel = UILabel(text: "cameraUnavailable".localize(table: "Camera"))
     
-    let backLensControl = UISegmentedControl()
-    let captureButton = CaptureButton()
-    let cameraButton = CameraIconButton()
+    public let backLensControl = UISegmentedControl()
+    public let captureButton = CaptureButton()
+    public let cameraButton = CameraIconButton()
     
     let tapGestureRecognizer = UITapGestureRecognizer()
     let pinchGestureRecognizer = UIPinchGestureRecognizer()
     
-    var currentZoom = 1.0
+    public var currentZoom = 1.0
     var currentZoomAtBegin = 1.0
     var currentMaxZoom = 1.0
     
-    var isHdrVideoMode = false
-    var isPhotoMode = true
-    var flashMode: AVCaptureDevice.FlashMode = .auto
+    public var isHdrVideoMode = false
+    public var isPhotoMode = true
+    public var flashMode: AVCaptureDevice.FlashMode = .auto
     var backDevices = [AVCaptureDevice]()
     var currentBackCameraIndex = 0
     var frontDevice: AVCaptureDevice!
@@ -59,12 +59,12 @@ open class CameraViewController: UIViewController, AVCaptureFileOutputRecordingD
     let session = AVCaptureSession()
     var isSessionRunning = false
     let sessionQueue = DispatchQueue(label: "session queue")
-    var setupResult: SessionSetupResult = .success
+    public var setupResult: SessionSetupResult = .success
     
     var isCaptureEnabled = false
     // check for isCaptureEnabled!
     var currentDeviceInput: AVCaptureDeviceInput? = nil
-    var currentDevice: AVCaptureDevice?{
+    public var currentDevice: AVCaptureDevice?{
         currentDeviceInput?.device ?? nil
     }
     var videoDeviceRotationCoordinator: AVCaptureDevice.RotationCoordinator? = nil
@@ -98,7 +98,7 @@ open class CameraViewController: UIViewController, AVCaptureFileOutputRecordingD
     var keyValueObservations = [NSKeyValueObservation]()
     var systemPreferredCameraContext = 0
     
-    var delegate: CameraDelegate? = nil
+    public var delegate: CameraDelegate? = nil
     
     override public func loadView() {
         super.loadView()
