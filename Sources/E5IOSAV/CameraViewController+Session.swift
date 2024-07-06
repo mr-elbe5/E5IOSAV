@@ -12,7 +12,7 @@ import E5Data
 
 extension CameraViewController{
     
-    public func configureSession() {
+    func configureSession() {
         if setupResult != .success {
             return
         }
@@ -49,10 +49,11 @@ extension CameraViewController{
                 session.addInput(videoDeviceInput)
                 self.currentDeviceInput = videoDeviceInput
                 self.isCaptureEnabled = true
-                self.resetZoomForNewDevice()
-                DispatchQueue.main.async {
-                    self.createDeviceRotationCoordinator()
-                    self.updateZoomLabel()
+                if self.resetZoomForNewDevice(){
+                    DispatchQueue.main.async {
+                        self.createDeviceRotationCoordinator()
+                        self.updateZoomLabel()
+                    }
                 }
             } else {
                 Log.error("Couldn't add video device input to the session.")
@@ -80,17 +81,15 @@ extension CameraViewController{
         }
         if session.canAddOutput(photoOutput) {
             session.addOutput(photoOutput)
-            
             //live photos disabled
             photoOutput.isLivePhotoCaptureEnabled = false
             photoOutput.maxPhotoQualityPrioritization = .quality
-            
-            self.configurePhotoOutput()
-            
-            let readinessCoordinator = AVCapturePhotoOutputReadinessCoordinator(photoOutput: photoOutput)
-            DispatchQueue.main.async {
-                self.photoOutputReadinessCoordinator = readinessCoordinator
-                readinessCoordinator.delegate = self
+            if self.configurePhotoOutput(){
+                let readinessCoordinator = AVCapturePhotoOutputReadinessCoordinator(photoOutput: photoOutput)
+                DispatchQueue.main.async {
+                    self.photoOutputReadinessCoordinator = readinessCoordinator
+                    readinessCoordinator.delegate = self
+                }
             }
         } else {
             Log.error("Could not add photo output to the session")

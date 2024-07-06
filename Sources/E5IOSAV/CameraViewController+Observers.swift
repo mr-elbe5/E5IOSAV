@@ -65,12 +65,12 @@ extension CameraViewController{
         }
     }
     
-    @objc public func subjectAreaDidChange(notification: NSNotification) {
+    @objc func subjectAreaDidChange(notification: NSNotification) {
         let devicePoint = CGPoint(x: 0.5, y: 0.5)
         focus(with: .continuousAutoFocus, exposureMode: .continuousAutoExposure, at: devicePoint, monitorSubjectAreaChange: false)
     }
     
-    @objc public func sessionRuntimeError(notification: NSNotification) {
+    @objc func sessionRuntimeError(notification: NSNotification) {
         guard let error = notification.userInfo?[AVCaptureSessionErrorKey] as? AVError else { return }
         
         Log.error("Capture session runtime error: \(error)")

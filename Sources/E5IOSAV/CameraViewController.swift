@@ -9,6 +9,7 @@ import AVFoundation
 import CoreLocation
 import Photos
 import E5Data
+import E5IOSUI
 
 public protocol CameraDelegate{
     func photoCaptured(data: Data, location: CLLocation?)
@@ -17,81 +18,78 @@ public protocol CameraDelegate{
 
 open class CameraViewController: UIViewController, AVCaptureFileOutputRecordingDelegate, AVCapturePhotoOutputReadinessCoordinatorDelegate {
     
-    public static var isMainController = false
+    static var isMainController = false
     
-    public static var discoverableDeviceTypes : [AVCaptureDevice.DeviceType] = [.builtInWideAngleCamera, .builtInUltraWideCamera,.builtInTelephotoCamera]
-    public static var maxLensZoomFactor = 10.0
+    static var discoverableDeviceTypes : [AVCaptureDevice.DeviceType] = [.builtInWideAngleCamera, .builtInUltraWideCamera,.builtInTelephotoCamera]
+    static var maxLensZoomFactor = 10.0
     
-    public enum SessionSetupResult {
+    enum SessionSetupResult {
         case success
         case notAuthorized
         case configurationFailed
     }
     
-    public let locationManager = CLLocationManager()
+    let locationManager = CLLocationManager()
     
-    public var bodyView = UIView()
-    public let previewView = PreviewView()
-    public let captureModeControl = UISegmentedControl()
-    public let hdrVideoModeButton = CameraIconButton()
-    public let flashModeButton = CameraIconButton()
-    public let closeButton = CameraIconButton()
-    public let zoomLabel = UILabel(text: "1.0x")
+    var bodyView = UIView()
+    let previewView = PreviewView()
+    let captureModeControl = UISegmentedControl()
+    let hdrVideoModeButton = CameraIconButton()
+    let flashModeButton = CameraIconButton()
+    let zoomLabel = UILabel(text: "1.0x")
     
-    public let cameraUnavailableLabel = UILabel(text: "cameraUnavailable".localize(table: "Camera"))
+    let cameraUnavailableLabel = UILabel(text: "cameraUnavailable".localize(table: "Camera"))
     
-    public let backLensControl = UISegmentedControl()
-    public let captureButton = CaptureButton()
-    public let cameraButton = CameraIconButton()
+    let backLensControl = UISegmentedControl()
+    let captureButton = CaptureButton()
+    let cameraButton = CameraIconButton()
     
-    public let tapGestureRecognizer = UITapGestureRecognizer()
-    public let pinchGestureRecognizer = UIPinchGestureRecognizer()
+    let tapGestureRecognizer = UITapGestureRecognizer()
+    let pinchGestureRecognizer = UIPinchGestureRecognizer()
     
-    public var currentZoom = 1.0
-    public var currentZoomAtBegin = 1.0
-    public var currentMaxZoom = 1.0
+    var currentZoom = 1.0
+    var currentZoomAtBegin = 1.0
+    var currentMaxZoom = 1.0
     
-    public var isHdrVideoMode = false
-    public var isPhotoMode = true
-    public var flashMode: AVCaptureDevice.FlashMode = .auto
-    public var backDevices = [AVCaptureDevice]()
-    public var currentBackCameraIndex = 0
-    public var frontDevice: AVCaptureDevice!
+    var isHdrVideoMode = false
+    var isPhotoMode = true
+    var flashMode: AVCaptureDevice.FlashMode = .auto
+    var backDevices = [AVCaptureDevice]()
+    var currentBackCameraIndex = 0
+    var frontDevice: AVCaptureDevice!
     
-    public let session = AVCaptureSession()
-    public var isSessionRunning = false
-    public let sessionQueue = DispatchQueue(label: "session queue")
-    public var setupResult: SessionSetupResult = .success
+    let session = AVCaptureSession()
+    var isSessionRunning = false
+    let sessionQueue = DispatchQueue(label: "session queue")
+    var setupResult: SessionSetupResult = .success
     
-    public var isCaptureEnabled = false
+    var isCaptureEnabled = false
     // check for isCaptureEnabled!
-    public var currentDeviceInput: AVCaptureDeviceInput!
-    public var currentDevice: AVCaptureDevice{
-        currentDeviceInput.device
+    var currentDeviceInput: AVCaptureDeviceInput? = nil
+    var currentDevice: AVCaptureDevice?{
+        currentDeviceInput?.device ?? nil
     }
-    public var currentPosition: AVCaptureDevice.Position{
-        currentDevice.position
-    }
+    var videoDeviceRotationCoordinator: AVCaptureDevice.RotationCoordinator? = nil
+    var videoDeviceIsConnectedObservation: NSKeyValueObservation? = nil
+    var videoRotationAngleForHorizonLevelPreviewObservation: NSKeyValueObservation? = nil
     
-    public var videoDeviceRotationCoordinator: AVCaptureDevice.RotationCoordinator!
-    public var videoDeviceIsConnectedObservation: NSKeyValueObservation?
-    public var videoRotationAngleForHorizonLevelPreviewObservation: NSKeyValueObservation?
+    var selectedMovieMode10BitDeviceFormat: AVCaptureDevice.Format?
     
-    public var selectedMovieMode10BitDeviceFormat: AVCaptureDevice.Format?
+    let photoOutput = AVCapturePhotoOutput()
+    var photoOutputReadinessCoordinator: AVCapturePhotoOutputReadinessCoordinator!
+    var photoSettings: AVCapturePhotoSettings!
+    var inProgressPhotoCaptureDelegates = [Int64: PhotoCaptureProcessor]()
     
-    public let photoOutput = AVCapturePhotoOutput()
-    public var photoOutputReadinessCoordinator: AVCapturePhotoOutputReadinessCoordinator!
-    public var photoSettings: AVCapturePhotoSettings!
-    public var inProgressPhotoCaptureDelegates = [Int64: PhotoCaptureProcessor]()
+    var movieFileOutput: AVCaptureMovieFileOutput?
+    var backgroundRecordingID: UIBackgroundTaskIdentifier?
     
-    public var movieFileOutput: AVCaptureMovieFileOutput?
-    public var backgroundRecordingID: UIBackgroundTaskIdentifier?
+    var _supportedInterfaceOrientations: UIInterfaceOrientationMask = .all
     
-    public var _supportedInterfaceOrientations: UIInterfaceOrientationMask = .all
     override public var supportedInterfaceOrientations: UIInterfaceOrientationMask {
         get { return _supportedInterfaceOrientations }
         set { _supportedInterfaceOrientations = newValue }
     }
+    
     override public var shouldAutorotate: Bool {
         if let movieFileOutput = movieFileOutput {
             return !movieFileOutput.isRecording
@@ -99,10 +97,10 @@ open class CameraViewController: UIViewController, AVCaptureFileOutputRecordingD
         return true
     }
     
-    public var keyValueObservations = [NSKeyValueObservation]()
-    public var systemPreferredCameraContext = 0
+    var keyValueObservations = [NSKeyValueObservation]()
+    var systemPreferredCameraContext = 0
     
-    public var delegate: CameraDelegate? = nil
+    var delegate: CameraDelegate? = nil
     
     override public func loadView() {
         super.loadView()
@@ -114,7 +112,7 @@ open class CameraViewController: UIViewController, AVCaptureFileOutputRecordingD
         addControls()
     }
     
-    public func discoverDeviceTypes(){
+    func discoverDeviceTypes(){
         let frontVideoDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: CameraViewController.discoverableDeviceTypes, mediaType: .video, position: .front)
         if let device = frontVideoDeviceDiscoverySession.devices.first{
             frontDevice = device
@@ -128,17 +126,105 @@ open class CameraViewController: UIViewController, AVCaptureFileOutputRecordingD
         //Log.debug("found \(backCameras.count) back cameras")
     }
     
-    public func resetZoomForNewDevice(){
-        if !isCaptureEnabled{
-            return
+    open func addControls(){
+        
+        captureModeControl.insertSegment(with: UIImage(systemName: "camera"), at: 0, animated: false)
+        captureModeControl.insertSegment(with: UIImage(systemName: "video"), at: 1, animated: false)
+        captureModeControl.selectedSegmentIndex = 0
+        captureModeControl.addAction(UIAction(){ action in
+            self.toggleCaptureMode()
+        }, for: .valueChanged)
+        captureModeControl.backgroundColor = .systemGray
+        bodyView.addSubview(captureModeControl)
+        captureModeControl.setAnchors(top: bodyView.topAnchor, leading: bodyView.leadingAnchor, insets: defaultInsets)
+        
+        hdrVideoModeButton.setup(icon: "square.3.layers.3d.down.right.slash")
+        hdrVideoModeButton.addAction(UIAction(){ action in
+            self.toggleHDRVideoMode()
+        }, for: .touchDown)
+        bodyView.addSubview(hdrVideoModeButton)
+        hdrVideoModeButton.setAnchors(top: bodyView.topAnchor, leading: captureModeControl.trailingAnchor, insets: defaultInsets)
+        
+        flashModeButton.setup(icon: "bolt.badge.automatic")
+        flashModeButton.addAction(UIAction(){ action in
+            self.toggleFlashMode()
+        }, for: .touchDown)
+        bodyView.addSubview(flashModeButton)
+        flashModeButton.setAnchors(top: bodyView.topAnchor, leading: hdrVideoModeButton.trailingAnchor, insets: defaultInsets)
+        
+        zoomLabel.textColor = .white
+        bodyView.addSubview(zoomLabel)
+        zoomLabel.setAnchors(top: captureModeControl.bottomAnchor, leading: bodyView.leadingAnchor, insets: defaultInsets)
+        
+        if backDevices.count > 1{
+            for i in 0..<backDevices.count{
+                var lensFactor = "1x"
+                let device = backDevices[i]
+                switch device.deviceType{
+                case .builtInUltraWideCamera:
+                    lensFactor = "0.5x"
+                case .builtInTelephotoCamera:
+                    lensFactor = "2x"
+                default:
+                    lensFactor = "1x"
+                }
+                backLensControl.insertSegment(withTitle: lensFactor, at: i, animated: false)
+            }
+            backLensControl.selectedSegmentIndex = 0
+            backLensControl.addAction(UIAction(){ action in
+                self.changeBackLens()
+            }, for: .valueChanged)
+            bodyView.addSubview(backLensControl)
+            backLensControl.backgroundColor = .systemGray
+            backLensControl.setAnchors(leading: bodyView.leadingAnchor, bottom: bodyView.bottomAnchor, insets: defaultInsets)
         }
-        currentDevice.videoZoomFactor = 1.0
-        currentZoom = 1.0
-        currentZoomAtBegin = 1.0
-        currentMaxZoom = min(CameraViewController.maxLensZoomFactor, currentDevice.maxAvailableVideoZoomFactor)
-        DispatchQueue.main.async {
-            self.updateZoomLabel()
+        
+        captureButton.addAction(UIAction(){ action in
+            self.capture()
+        }, for: .touchDown)
+        bodyView.addSubview(captureButton)
+        captureButton.setAnchors()
+            .centerX(bodyView.centerXAnchor)
+            .bottom(bodyView.bottomAnchor,inset: -defaultInset)
+            .width(60)
+            .height(60)
+        
+        cameraButton.setup(icon: "arrow.triangle.2.circlepath.camera")
+        cameraButton.addAction(UIAction(){ action in
+            self.changeCamera()
+        }, for: .touchDown)
+        bodyView.addSubview(cameraButton)
+        cameraButton.setAnchors(trailing: bodyView.trailingAnchor, bottom: bodyView.bottomAnchor, insets: defaultInsets)
+        
+        bodyView.addSubview(cameraUnavailableLabel)
+        cameraUnavailableLabel.setAnchors()
+            .centerX(bodyView.centerXAnchor)
+            .centerY(bodyView.centerYAnchor)
+        cameraUnavailableLabel.isHidden = true
+        
+        tapGestureRecognizer.addTarget(self, action: #selector(focusAndExposeTap))
+        tapGestureRecognizer.isEnabled = true
+        previewView.addGestureRecognizer(tapGestureRecognizer)
+        
+        pinchGestureRecognizer.addTarget(self, action: #selector(zoomTap))
+        pinchGestureRecognizer.isEnabled = true
+        previewView.addGestureRecognizer(pinchGestureRecognizer)
+        
+        updateFlashButton()
+    }
+    
+    func resetZoomForNewDevice() -> Bool{
+        if isCaptureEnabled, let currentDevice = currentDevice{
+            currentDevice.videoZoomFactor = 1.0
+            currentZoom = 1.0
+            currentZoomAtBegin = 1.0
+            currentMaxZoom = min(CameraViewController.maxLensZoomFactor, currentDevice.maxAvailableVideoZoomFactor)
+            DispatchQueue.main.async {
+                self.updateZoomLabel()
+            }
+            return true
         }
+        return false
     }
     
     override public func viewDidLoad() {
@@ -217,7 +303,7 @@ open class CameraViewController: UIViewController, AVCaptureFileOutputRecordingD
         super.viewWillDisappear(animated)
     }
     
-    public func changeVideoDevice(_ videoDevice: AVCaptureDevice, completion: (() -> Void)? = nil) {
+    func changeVideoDevice(_ videoDevice: AVCaptureDevice, completion: ((Bool) -> Void)? = nil) {
         //Log.debug("change video device")
         sessionQueue.async {
             do {
@@ -239,9 +325,9 @@ open class CameraViewController: UIViewController, AVCaptureFileOutputRecordingD
                         self.session.addInput(currentDeviceInput)
                     }
                 }
-                if self.isCaptureEnabled, let connection = self.movieFileOutput?.connection(with: .video) {
+                if self.isCaptureEnabled, let currentDevice = self.currentDevice, let connection = self.movieFileOutput?.connection(with: .video) {
                     self.session.sessionPreset = .high
-                    self.selectedMovieMode10BitDeviceFormat = self.tenBitVariantOfFormat(activeFormat: self.currentDevice.activeFormat)
+                    self.selectedMovieMode10BitDeviceFormat = self.tenBitVariantOfFormat(activeFormat: currentDevice.activeFormat)
                     if self.selectedMovieMode10BitDeviceFormat != nil {
                         DispatchQueue.main.async {
                             self.hdrVideoModeButton.isEnabled = true
@@ -249,10 +335,10 @@ open class CameraViewController: UIViewController, AVCaptureFileOutputRecordingD
                         
                         if self.isHdrVideoMode {
                             do {
-                                try self.currentDevice.lockForConfiguration()
-                                self.currentDevice.activeFormat = self.selectedMovieMode10BitDeviceFormat!
+                                try currentDevice.lockForConfiguration()
+                                currentDevice.activeFormat = self.selectedMovieMode10BitDeviceFormat!
                                 Log.info("Setting 'x420' format \(String(describing: self.selectedMovieMode10BitDeviceFormat)) for video recording")
-                                self.currentDevice.unlockForConfiguration()
+                                currentDevice.unlockForConfiguration()
                             } catch {
                                 Log.error("Could not lock device for configuration: \(error)")
                             }
@@ -262,16 +348,18 @@ open class CameraViewController: UIViewController, AVCaptureFileOutputRecordingD
                         connection.preferredVideoStabilizationMode = .auto
                     }
                 }
-                self.configurePhotoOutput()
-                self.resetZoomForNewDevice()
-                self.session.commitConfiguration()
-                DispatchQueue.main.async {
-                    self.updateZoomLabel()
+                if self.configurePhotoOutput(), self.resetZoomForNewDevice(){
+                    self.session.commitConfiguration()
+                    DispatchQueue.main.async {
+                        self.updateZoomLabel()
+                    }
+                    completion?(true)
+                    return
                 }
             } catch {
                 Log.error("Error occurred while creating video device input: \(error)")
             }
-            completion?()
+            completion?(false)
         }
     }
     
@@ -279,21 +367,20 @@ open class CameraViewController: UIViewController, AVCaptureFileOutputRecordingD
         self.captureButton.isUserInteractionEnabled = (captureReadiness == .ready) ? true : false
     }
     
-    public func createDeviceRotationCoordinator() {
-        if !isCaptureEnabled{
-            return
-        }
-        videoDeviceRotationCoordinator = AVCaptureDevice.RotationCoordinator(device: currentDevice, previewLayer: previewView.videoPreviewLayer)
-        previewView.videoPreviewLayer.connection?.videoRotationAngle = videoDeviceRotationCoordinator.videoRotationAngleForHorizonLevelPreview
-        
-        videoRotationAngleForHorizonLevelPreviewObservation = videoDeviceRotationCoordinator.observe(\.videoRotationAngleForHorizonLevelPreview, options: .new) { _, change in
-            guard let videoRotationAngleForHorizonLevelPreview = change.newValue else { return }
-            
-            self.previewView.videoPreviewLayer.connection?.videoRotationAngle = videoRotationAngleForHorizonLevelPreview
+    func createDeviceRotationCoordinator() {
+        if isCaptureEnabled, let currentDevice = currentDevice{
+            let videoDeviceRotationCoordinator = AVCaptureDevice.RotationCoordinator(device: currentDevice, previewLayer: previewView.videoPreviewLayer)
+            previewView.videoPreviewLayer.connection?.videoRotationAngle = videoDeviceRotationCoordinator.videoRotationAngleForHorizonLevelPreview
+            videoRotationAngleForHorizonLevelPreviewObservation = videoDeviceRotationCoordinator.observe(\.videoRotationAngleForHorizonLevelPreview, options: .new) { _, change in
+                guard let videoRotationAngleForHorizonLevelPreview = change.newValue else { return }
+                
+                self.previewView.videoPreviewLayer.connection?.videoRotationAngle = videoRotationAngleForHorizonLevelPreview
+            }
+            self.videoDeviceRotationCoordinator = videoDeviceRotationCoordinator
         }
     }
     
-    public func focus(with focusMode: AVCaptureDevice.FocusMode,
+    func focus(with focusMode: AVCaptureDevice.FocusMode,
                exposureMode: AVCaptureDevice.ExposureMode,
                at devicePoint: CGPoint,
                monitorSubjectAreaChange: Bool) {
@@ -301,32 +388,33 @@ open class CameraViewController: UIViewController, AVCaptureFileOutputRecordingD
             return
         }
         sessionQueue.async {
-            let device = self.currentDevice
-            do {
-                try device.lockForConfiguration()
-                
-                // Setting (focus/exposure)PointOfInterest alone does not
-                // initiate a (focus/exposure) operation. Call
-                // set(Focus/Exposure)Mode() to apply the new point of interest.
-                if device.isFocusPointOfInterestSupported && device.isFocusModeSupported(focusMode) {
-                    device.focusPointOfInterest = devicePoint
-                    device.focusMode = focusMode
+            if let device = self.currentDevice{
+                do {
+                    try device.lockForConfiguration()
+                    
+                    // Setting (focus/exposure)PointOfInterest alone does not
+                    // initiate a (focus/exposure) operation. Call
+                    // set(Focus/Exposure)Mode() to apply the new point of interest.
+                    if device.isFocusPointOfInterestSupported && device.isFocusModeSupported(focusMode) {
+                        device.focusPointOfInterest = devicePoint
+                        device.focusMode = focusMode
+                    }
+                    
+                    if device.isExposurePointOfInterestSupported && device.isExposureModeSupported(exposureMode) {
+                        device.exposurePointOfInterest = devicePoint
+                        device.exposureMode = exposureMode
+                    }
+                    
+                    device.isSubjectAreaChangeMonitoringEnabled = monitorSubjectAreaChange
+                    device.unlockForConfiguration()
+                } catch {
+                    Log.error("Could not lock device for configuration: \(error)")
                 }
-                
-                if device.isExposurePointOfInterestSupported && device.isExposureModeSupported(exposureMode) {
-                    device.exposurePointOfInterest = devicePoint
-                    device.exposureMode = exposureMode
-                }
-                
-                device.isSubjectAreaChangeMonitoringEnabled = monitorSubjectAreaChange
-                device.unlockForConfiguration()
-            } catch {
-                Log.error("Could not lock device for configuration: \(error)")
             }
         }
     }
     
-    public func setUpPhotoSettings() -> AVCapturePhotoSettings {
+    func setUpPhotoSettings() -> AVCapturePhotoSettings {
         var photoSettings = AVCapturePhotoSettings()
         if !isCaptureEnabled{
             return photoSettings
@@ -336,7 +424,7 @@ open class CameraViewController: UIViewController, AVCaptureFileOutputRecordingD
         } else {
             photoSettings = AVCapturePhotoSettings()
         }
-        if currentDevice.isFlashAvailable {
+        if let currentDevice = currentDevice, currentDevice.isFlashAvailable{
             photoSettings.flashMode = flashMode
         }
         photoSettings.maxPhotoDimensions = self.photoOutput.maxPhotoDimensions
@@ -347,32 +435,31 @@ open class CameraViewController: UIViewController, AVCaptureFileOutputRecordingD
         return photoSettings
     }
     
-    public func tenBitVariantOfFormat(activeFormat: AVCaptureDevice.Format) -> AVCaptureDevice.Format? {
+    func tenBitVariantOfFormat(activeFormat: AVCaptureDevice.Format) -> AVCaptureDevice.Format? {
         if !isCaptureEnabled{
             return nil
         }
-        let formats = currentDevice.formats
-        let formatIndex = formats.firstIndex(of: activeFormat)!
-        
-        let activeDimensions = CMVideoFormatDescriptionGetDimensions(activeFormat.formatDescription)
-        let activeMaxFrameRate = activeFormat.videoSupportedFrameRateRanges.last?.maxFrameRate
-        let activePixelFormat = CMFormatDescriptionGetMediaSubType(activeFormat.formatDescription)
-        
-        if activePixelFormat != kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange {
-            for index in formatIndex + 1..<formats.count {
-                let format = formats[index]
-                let dimensions = CMVideoFormatDescriptionGetDimensions(format.formatDescription)
-                let maxFrameRate = format.videoSupportedFrameRateRanges.last?.maxFrameRate
-                let pixelFormat = CMFormatDescriptionGetMediaSubType(format.formatDescription)
-                if activeMaxFrameRate != maxFrameRate || activeDimensions.width != dimensions.width || activeDimensions.height != dimensions.height {
-                    break
+        if let formats = currentDevice?.formats{
+            let formatIndex = formats.firstIndex(of: activeFormat)!
+            let activeDimensions = CMVideoFormatDescriptionGetDimensions(activeFormat.formatDescription)
+            let activeMaxFrameRate = activeFormat.videoSupportedFrameRateRanges.last?.maxFrameRate
+            let activePixelFormat = CMFormatDescriptionGetMediaSubType(activeFormat.formatDescription)
+            if activePixelFormat != kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange {
+                for index in formatIndex + 1..<formats.count {
+                    let format = formats[index]
+                    let dimensions = CMVideoFormatDescriptionGetDimensions(format.formatDescription)
+                    let maxFrameRate = format.videoSupportedFrameRateRanges.last?.maxFrameRate
+                    let pixelFormat = CMFormatDescriptionGetMediaSubType(format.formatDescription)
+                    if activeMaxFrameRate != maxFrameRate || activeDimensions.width != dimensions.width || activeDimensions.height != dimensions.height {
+                        break
+                    }
+                    if pixelFormat == kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange {
+                        return format
+                    }
                 }
-                if pixelFormat == kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange {
-                    return format
-                }
+            } else {
+                return activeFormat
             }
-        } else {
-            return activeFormat
         }
         return nil
     }
@@ -380,7 +467,7 @@ open class CameraViewController: UIViewController, AVCaptureFileOutputRecordingD
 }
 
 extension AVCaptureDevice.DiscoverySession {
-    public var uniqueDevicePositionsCount: Int {
+    var uniqueDevicePositionsCount: Int {
         var uniqueDevicePositions = [AVCaptureDevice.Position]()
         for device in devices where !uniqueDevicePositions.contains(device.position) {
             uniqueDevicePositions.append(device.position)

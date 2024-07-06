@@ -18,7 +18,7 @@ extension CameraViewController{
             return
         }
         enableControls(false)
-        let videoRotationAngle = self.videoDeviceRotationCoordinator.videoRotationAngleForHorizonLevelCapture
+        let videoRotationAngle = self.videoDeviceRotationCoordinator?.videoRotationAngleForHorizonLevelCapture
         if let window = self.view.window, let windowScene = window.windowScene {
             switch windowScene.interfaceOrientation {
             case .portrait: self.supportedInterfaceOrientations = .portrait
@@ -32,7 +32,7 @@ extension CameraViewController{
         self.setNeedsUpdateOfSupportedInterfaceOrientations()
         sessionQueue.async {
             if !movieFileOutput.isRecording {
-                Log.info("start movie recording")
+                Log.debug("start movie recording")
                 DispatchQueue.main.async {
                     //Log.debug("movie recording: change capture button to recording")
                     self.captureButton.buttonState = .recording
@@ -41,7 +41,7 @@ extension CameraViewController{
                     self.backgroundRecordingID = UIApplication.shared.beginBackgroundTask(expirationHandler: nil)
                 }
                 let movieFileOutputConnection = movieFileOutput.connection(with: .video)
-                movieFileOutputConnection?.videoRotationAngle = videoRotationAngle
+                movieFileOutputConnection?.videoRotationAngle = videoRotationAngle ?? .zero
                 let availableVideoCodecTypes = movieFileOutput.availableVideoCodecTypes
                 if availableVideoCodecTypes.contains(.hevc) {
                     movieFileOutput.setOutputSettings([AVVideoCodecKey: AVVideoCodecType.hevc], for: movieFileOutputConnection!)
@@ -95,7 +95,7 @@ extension CameraViewController{
                 }
             }
             PhotoLibrary.saveVideo(outputFileURL: outputFileURL, location: location, resultHandler: { localIdentifier in
-                //Log.debug("saved video with localIdentifier \(localIdentifier)")
+                Log.debug("saved video with localIdentifier \(localIdentifier)")
                 cleanup()
             })
         } else {
