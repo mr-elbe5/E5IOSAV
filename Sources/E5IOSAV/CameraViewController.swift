@@ -100,7 +100,7 @@ open class CameraViewController: UIViewController, AVCaptureFileOutputRecordingD
     
     public var delegate: CameraDelegate? = nil
     
-    override public func loadView() {
+    override open func loadView() {
         super.loadView()
         view.addSubviewFillingSafeArea(bodyView)
         bodyView.backgroundColor = .black
