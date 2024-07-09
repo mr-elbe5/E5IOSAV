@@ -10,7 +10,7 @@ import CoreLocation
 import Photos
 import E5Data
 
-extension CameraViewController{
+extension E5CameraViewController{
     
     func configureSession() {
         if setupResult != .success {

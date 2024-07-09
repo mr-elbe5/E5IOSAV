@@ -16,7 +16,7 @@ public protocol CameraDelegate{
     func videoCaptured(data: Data, cllocation: CLLocation?)
 }
 
-open class CameraViewController: UIViewController, AVCaptureFileOutputRecordingDelegate, AVCapturePhotoOutputReadinessCoordinatorDelegate {
+open class E5CameraViewController: UIViewController, AVCaptureFileOutputRecordingDelegate, AVCapturePhotoOutputReadinessCoordinatorDelegate {
     
     public static var discoverableDeviceTypes : [AVCaptureDevice.DeviceType] = [.builtInWideAngleCamera, .builtInUltraWideCamera,.builtInTelephotoCamera]
     public static var maxLensZoomFactor = 10.0
@@ -111,13 +111,13 @@ open class CameraViewController: UIViewController, AVCaptureFileOutputRecordingD
     }
     
     func discoverDeviceTypes(){
-        let frontVideoDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: CameraViewController.discoverableDeviceTypes, mediaType: .video, position: .front)
+        let frontVideoDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: E5CameraViewController.discoverableDeviceTypes, mediaType: .video, position: .front)
         if let device = frontVideoDeviceDiscoverySession.devices.first{
             frontDevice = device
         }
         //Log.debug("found front camera")
         backDevices.removeAll()
-        let backVideoDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: CameraViewController.discoverableDeviceTypes, mediaType: .video, position: .back)
+        let backVideoDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: E5CameraViewController.discoverableDeviceTypes, mediaType: .video, position: .back)
         for device in backVideoDeviceDiscoverySession.devices where !device.isVirtualDevice{
             backDevices.append(device)
         }
@@ -216,7 +216,7 @@ open class CameraViewController: UIViewController, AVCaptureFileOutputRecordingD
             currentDevice.videoZoomFactor = 1.0
             currentZoom = 1.0
             currentZoomAtBegin = 1.0
-            currentMaxZoom = min(CameraViewController.maxLensZoomFactor, currentDevice.maxAvailableVideoZoomFactor)
+            currentMaxZoom = min(E5CameraViewController.maxLensZoomFactor, currentDevice.maxAvailableVideoZoomFactor)
             DispatchQueue.main.async {
                 self.updateZoomLabel()
             }

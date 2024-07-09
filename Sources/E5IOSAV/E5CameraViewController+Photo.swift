@@ -11,7 +11,7 @@ import Photos
 import E5Data
 import E5PhotoLib
 
-extension CameraViewController{
+extension E5CameraViewController{
     
     func configurePhotoOutput() -> Bool {
         if isCaptureEnabled, let supportedMaxPhotoDimensions = currentDevice?.activeFormat.supportedMaxPhotoDimensions{

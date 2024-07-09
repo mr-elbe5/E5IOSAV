@@ -10,7 +10,7 @@ import CoreLocation
 import Photos
 import E5Data
 
-extension CameraViewController{
+extension E5CameraViewController{
     
     public func addObservers() {
         let keyValueObservation = session.observe(\.isRunning, options: .new) { _, change in
@@ -18,7 +18,7 @@ extension CameraViewController{
             
             DispatchQueue.main.async {
                 //Log.debug("observers: enable/disable buttons")
-                self.cameraButton.isEnabled = isSessionRunning && AVCaptureDevice.DiscoverySession(deviceTypes: CameraViewController.discoverableDeviceTypes, mediaType: .video, position: .unspecified).uniqueDevicePositionsCount > 1
+                self.cameraButton.isEnabled = isSessionRunning && AVCaptureDevice.DiscoverySession(deviceTypes: E5CameraViewController.discoverableDeviceTypes, mediaType: .video, position: .unspecified).uniqueDevicePositionsCount > 1
                 self.captureButton.isEnabled = isSessionRunning
                 self.captureModeControl.isEnabled = isSessionRunning
             }
