@@ -24,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/mr-elbe5/E5PhotoLib",
       "state" : {
-        "revision" : "d568867b6be2bdc5460b809aa62468203b3bc5ec",
-        "version" : "1.0.0"
+        "revision" : "4f7211f70869988eb3ea6aa05c497ad8edb23413",
+        "version" : "1.0.10"
       }
     }
   ],
