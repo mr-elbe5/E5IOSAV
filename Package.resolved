@@ -6,8 +6,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/mr-elbe5/E5Data.git",
       "state" : {
-        "revision" : "c1a53b09b7750a1ba6b1356ca9342ab2d531f45e",
-        "version" : "1.0.26"
+        "revision" : "779fe8873c41c5895fedf163331d1436eaaaa60c",
+        "version" : "1.0.27"
       }
     },
     {
@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/mr-elbe5/E5IOSUI",
       "state" : {
-        "revision" : "1783444d3473f19197406bab6757a6de6dce1f6c",
-        "version" : "1.0.24"
+        "revision" : "03ef31abfd024164eda7cb9318fb181bc416ad61",
+        "version" : "1.0.31"
       }
     },
     {
