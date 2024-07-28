@@ -6,8 +6,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/mr-elbe5/E5Data.git",
       "state" : {
-        "revision" : "779fe8873c41c5895fedf163331d1436eaaaa60c",
-        "version" : "1.0.27"
+        "revision" : "0fc486df977d924f3a0f7f509c58653888cd06e4",
+        "version" : "1.0.29"
       }
     },
     {
@@ -24,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/mr-elbe5/E5PhotoLib",
       "state" : {
-        "revision" : "4f7211f70869988eb3ea6aa05c497ad8edb23413",
-        "version" : "1.0.10"
+        "revision" : "90a077dcd3d5cf7f4bd3f01f58b64466acef8016",
+        "version" : "1.0.11"
       }
     }
   ],
