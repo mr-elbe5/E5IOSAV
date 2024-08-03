@@ -67,14 +67,12 @@ open class E5CameraViewController: UIViewController, AVCaptureFileOutputRecordin
     public var currentDevice: AVCaptureDevice?{
         currentDeviceInput?.device ?? nil
     }
-    var videoDeviceRotationCoordinator: AVCaptureDevice.RotationCoordinator? = nil
     var videoDeviceIsConnectedObservation: NSKeyValueObservation? = nil
     var videoRotationAngleForHorizonLevelPreviewObservation: NSKeyValueObservation? = nil
     
     var selectedMovieMode10BitDeviceFormat: AVCaptureDevice.Format?
     
     let photoOutput = AVCapturePhotoOutput()
-    var photoOutputReadinessCoordinator: AVCapturePhotoOutputReadinessCoordinator!
     var photoSettings: AVCapturePhotoSettings!
     var inProgressPhotoCaptureDelegates = [Int64: PhotoCaptureProcessor]()
     
@@ -316,9 +314,9 @@ open class E5CameraViewController: UIViewController, AVCaptureFileOutputRecordin
                         self.currentDeviceInput = videoDeviceInput
                         //Log.debug("current device: \(self.currentDevice.position)")
                         self.isCaptureEnabled = true
-                        DispatchQueue.main.async {
+                        /*DispatchQueue.main.async {
                             self.createDeviceRotationCoordinator()
-                        }
+                        }*/
                     } else {
                         self.session.addInput(currentDeviceInput)
                     }
@@ -361,23 +359,6 @@ open class E5CameraViewController: UIViewController, AVCaptureFileOutputRecordin
         }
     }
     
-    public func readinessCoordinator(_ coordinator: AVCapturePhotoOutputReadinessCoordinator, captureReadinessDidChange captureReadiness: AVCapturePhotoOutput.CaptureReadiness) {
-        self.captureButton.isUserInteractionEnabled = (captureReadiness == .ready) ? true : false
-    }
-    
-    func createDeviceRotationCoordinator() {
-        if isCaptureEnabled, let currentDevice = currentDevice{
-            let videoDeviceRotationCoordinator = AVCaptureDevice.RotationCoordinator(device: currentDevice, previewLayer: previewView.videoPreviewLayer)
-            previewView.videoPreviewLayer.connection?.videoRotationAngle = videoDeviceRotationCoordinator.videoRotationAngleForHorizonLevelPreview
-            videoRotationAngleForHorizonLevelPreviewObservation = videoDeviceRotationCoordinator.observe(\.videoRotationAngleForHorizonLevelPreview, options: .new) { _, change in
-                guard let videoRotationAngleForHorizonLevelPreview = change.newValue else { return }
-                
-                self.previewView.videoPreviewLayer.connection?.videoRotationAngle = videoRotationAngleForHorizonLevelPreview
-            }
-            self.videoDeviceRotationCoordinator = videoDeviceRotationCoordinator
-        }
-    }
-    
     func focus(with focusMode: AVCaptureDevice.FocusMode,
                exposureMode: AVCaptureDevice.ExposureMode,
                at devicePoint: CGPoint,
@@ -390,9 +371,6 @@ open class E5CameraViewController: UIViewController, AVCaptureFileOutputRecordin
                 do {
                     try device.lockForConfiguration()
                     
-                    // Setting (focus/exposure)PointOfInterest alone does not
-                    // initiate a (focus/exposure) operation. Call
-                    // set(Focus/Exposure)Mode() to apply the new point of interest.
                     if device.isFocusPointOfInterestSupported && device.isFocusModeSupported(focusMode) {
                         device.focusPointOfInterest = devicePoint
                         device.focusMode = focusMode

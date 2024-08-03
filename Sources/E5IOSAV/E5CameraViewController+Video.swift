@@ -18,7 +18,6 @@ extension E5CameraViewController{
             return
         }
         enableControls(false)
-        let videoRotationAngle = self.videoDeviceRotationCoordinator?.videoRotationAngleForHorizonLevelCapture
         if let window = self.view.window, let windowScene = window.windowScene {
             switch windowScene.interfaceOrientation {
             case .portrait: self.supportedInterfaceOrientations = .portrait
@@ -41,7 +40,7 @@ extension E5CameraViewController{
                     self.backgroundRecordingID = UIApplication.shared.beginBackgroundTask(expirationHandler: nil)
                 }
                 let movieFileOutputConnection = movieFileOutput.connection(with: .video)
-                movieFileOutputConnection?.videoRotationAngle = videoRotationAngle ?? .zero
+                //movieFileOutputConnection?.videoRotationAngle = videoRotationAngle ?? .zero
                 let availableVideoCodecTypes = movieFileOutput.availableVideoCodecTypes
                 if availableVideoCodecTypes.contains(.hevc) {
                     movieFileOutput.setOutputSettings([AVVideoCodecKey: AVVideoCodecType.hevc], for: movieFileOutputConnection!)
@@ -100,14 +99,6 @@ extension E5CameraViewController{
             })
         } else {
             cleanup()
-        }
-        sessionQueue.async {
-            if let systemPreferredCamera = AVCaptureDevice.systemPreferredCamera{
-                if self.currentDevice != systemPreferredCamera {
-                    //Log.debug("changing device after file output")
-                    self.changeVideoDevice(systemPreferredCamera)
-                }
-            }
         }
         DispatchQueue.main.async {
             //Log.debug("file output: enable buttons")

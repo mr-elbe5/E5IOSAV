@@ -60,7 +60,6 @@ extension E5CameraViewController{
             }
         }
         if let newVideoDevice = newVideoDevice{
-            AVCaptureDevice.userPreferredCamera = newVideoDevice
             changeVideoDevice(newVideoDevice, completion: { success in
                 if success{
                     DispatchQueue.main.async {
@@ -89,7 +88,6 @@ extension E5CameraViewController{
         enableControls(false)
         self.selectedMovieMode10BitDeviceFormat = nil
         let newVideoDevice = backDevices[currentBackCameraIndex]
-        AVCaptureDevice.userPreferredCamera = newVideoDevice
         self.changeVideoDevice(newVideoDevice, completion: { success in
             if success{
                 DispatchQueue.main.async {
@@ -200,7 +198,7 @@ extension E5CameraViewController{
             //Log.debug("isPhotoMode = \(cameraSettings.isPhotoMode)")
             enableControls(false)
             if isPhotoMode {
-                Log.debug("running photo mode")
+                Log.info("running photo mode")
                 enableControls(false)
                 selectedMovieMode10BitDeviceFormat = nil
                 sessionQueue.async {
@@ -217,7 +215,7 @@ extension E5CameraViewController{
                     }
                 }
             } else {
-                Log.debug("running video mode")
+                Log.info("running video mode")
                 sessionQueue.async {
                     let movieFileOutput = AVCaptureMovieFileOutput()
                     if self.session.canAddOutput(movieFileOutput) {

@@ -19,21 +19,19 @@ extension E5CameraViewController{
         session.beginConfiguration()
         session.sessionPreset = .photo
         do {
-            var defaultVideoDevice: AVCaptureDevice? = AVCaptureDevice.systemPreferredCamera
+            var defaultVideoDevice: AVCaptureDevice? = nil
             let userDefaults = UserDefaults.standard
-            if !userDefaults.bool(forKey: "setInitialUserPreferredCamera") || defaultVideoDevice == nil {
-                let backVideoDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInDualCamera, .builtInWideAngleCamera], mediaType: .video, position: .back)
-                if let device = backVideoDeviceDiscoverySession.devices.first{
+            let backVideoDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInDualCamera, .builtInWideAngleCamera], mediaType: .video, position: .back)
+            if let device = backVideoDeviceDiscoverySession.devices.first{
+                defaultVideoDevice = device
+            }
+            else{
+                let frontVideoDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInDualCamera, .builtInWideAngleCamera], mediaType: .video, position: .front)
+                if let device = frontVideoDeviceDiscoverySession.devices.first{
                     defaultVideoDevice = device
                 }
-                else{
-                    let frontVideoDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInDualCamera, .builtInWideAngleCamera], mediaType: .video, position: .front)
-                    if let device = frontVideoDeviceDiscoverySession.devices.first{
-                        defaultVideoDevice = device
-                    }
-                }
-                userDefaults.set(true, forKey: "setInitialUserPreferredCamera")
             }
+            userDefaults.set(true, forKey: "setInitialUserPreferredCamera")
             guard let videoDevice = defaultVideoDevice else {
                 Log.error("Default video device is unavailable.")
                 setupResult = .configurationFailed
@@ -50,7 +48,6 @@ extension E5CameraViewController{
                 self.isCaptureEnabled = true
                 if self.resetZoomForNewDevice(){
                     DispatchQueue.main.async {
-                        self.createDeviceRotationCoordinator()
                         self.updateZoomLabel()
                     }
                 }
@@ -83,12 +80,11 @@ extension E5CameraViewController{
             //live photos disabled
             photoOutput.isLivePhotoCaptureEnabled = false
             photoOutput.maxPhotoQualityPrioritization = .quality
-            if self.configurePhotoOutput(){
-                let readinessCoordinator = AVCapturePhotoOutputReadinessCoordinator(photoOutput: photoOutput)
-                DispatchQueue.main.async {
-                    self.photoOutputReadinessCoordinator = readinessCoordinator
-                    readinessCoordinator.delegate = self
-                }
+            if !self.configurePhotoOutput(){
+                Log.error("Could not configure photo output")
+                setupResult = .configurationFailed
+                session.commitConfiguration()
+                return
             }
         } else {
             Log.error("Could not add photo output to the session")

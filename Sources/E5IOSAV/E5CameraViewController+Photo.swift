@@ -20,9 +20,6 @@ extension E5CameraViewController{
             }
             self.photoOutput.isLivePhotoCaptureEnabled = false
             self.photoOutput.maxPhotoQualityPrioritization = .quality
-            self.photoOutput.isResponsiveCaptureEnabled = self.photoOutput.isResponsiveCaptureSupported
-            self.photoOutput.isFastCapturePrioritizationEnabled = self.photoOutput.isFastCapturePrioritizationSupported
-            self.photoOutput.isAutoDeferredPhotoDeliveryEnabled = false
             let photoSettings = self.setUpPhotoSettings()
             DispatchQueue.main.async {
                 self.photoSettings = photoSettings
@@ -35,25 +32,16 @@ extension E5CameraViewController{
     func capturePhoto() -> Bool{
         if isCaptureEnabled, self.photoSettings != nil{
             let photoSettings = AVCapturePhotoSettings(from: self.photoSettings)
-            if let videoRotationAngle = self.videoDeviceRotationCoordinator?.videoRotationAngleForHorizonLevelCapture{
-                self.photoOutputReadinessCoordinator.startTrackingCaptureRequest(using: photoSettings)
-                sessionQueue.async {
-                    if let photoOutputConnection = self.photoOutput.connection(with: .video) {
-                        photoOutputConnection.videoRotationAngle = videoRotationAngle
-                    }
-                    let photoCaptureProcessor = PhotoCaptureProcessor(with: photoSettings, completionHandler: { photoCaptureProcessor in
-                        self.sessionQueue.async {
-                            self.inProgressPhotoCaptureDelegates[photoCaptureProcessor.requestedPhotoSettings.uniqueID] = nil
-                        }
-                    })
-                    photoCaptureProcessor.delegate = self.delegate
-                    photoCaptureProcessor.location = self.locationManager.location
-                    self.inProgressPhotoCaptureDelegates[photoCaptureProcessor.requestedPhotoSettings.uniqueID] = photoCaptureProcessor
-                    self.photoOutput.capturePhoto(with: photoSettings, delegate: photoCaptureProcessor)
-                    self.photoOutputReadinessCoordinator.stopTrackingCaptureRequest(using: photoSettings.uniqueID)
+            let photoCaptureProcessor = PhotoCaptureProcessor(with: photoSettings, completionHandler: { photoCaptureProcessor in
+                self.sessionQueue.async {
+                    self.inProgressPhotoCaptureDelegates[photoCaptureProcessor.requestedPhotoSettings.uniqueID] = nil
                 }
-                return true
-            }
+            })
+            photoCaptureProcessor.delegate = self.delegate
+            photoCaptureProcessor.location = self.locationManager.location
+            self.inProgressPhotoCaptureDelegates[photoCaptureProcessor.requestedPhotoSettings.uniqueID] = photoCaptureProcessor
+            self.photoOutput.capturePhoto(with: photoSettings, delegate: photoCaptureProcessor)
+            return true
         }
         return false
     }
